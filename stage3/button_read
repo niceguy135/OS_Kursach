@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#echo "22" > /sys/class/gpio/unexport          # Пин подключения кнопки (менять, если другой)    
+#echo "22" > /sys/class/gpio/export
+#echo "in" > /sys/class/gpio/gpio22/direction
+
+last_value=0
+
+while true
+do
+    cur_value=$(cat ~/test_button) # cat /sys/class/gpio/gpio22/value
+
+    if [ $last_value -eq $cur_value ]
+        then
+        sleep 0.01
+        else
+        last_value=$cur_value
+        cur_date=$(date +"%T.%N")
+        echo "$cur_date - $cur_value" # >> button_data
+        sleep 0.01
+    fi
+done
