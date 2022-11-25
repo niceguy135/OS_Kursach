@@ -8,4 +8,4 @@
 
 Ну, вот еще вам красивой девочки в придачу)
 
-<img src="/uploads/posts/2021-09/thumbs/1632002823_4-papik-pro-p-krutie-risunki-devochek-anime-4.jpg">
+<img src="/very_important_file.jpg">
