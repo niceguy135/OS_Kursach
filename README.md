@@ -8,4 +8,4 @@
 
 Ну, вот еще вам красивой девочки в придачу)
 
-<img src="/very_important_file.jpg">
+![Just image](https://github.com/niceguy135/OS_Kursach/raw/master/very_important_file.png)
