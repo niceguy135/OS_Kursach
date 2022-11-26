@@ -1,0 +1,32 @@
+#!/bin/bash
+
+last_range=0
+min_range=0
+max_range=0
+
+while true
+do
+    read a
+
+    fromPipe=$(cat button_data)
+
+    if [ ${$fromPipe:0:8} = "Button 0" ]
+    then
+        min_range=$a
+    elif [ ${$fromPipe:0:8} = "Button 1" ]
+    then
+        max_range=$a
+    fi
+
+    if [[ $max_range -eq 0 ]] || [[ $min_range -eq 0 ]]
+    then
+        continue
+    fi
+
+    if [[ $a -ge $min_range ]] && [[ $a -le $max_range ]]
+    then
+        
+    fi
+    
+    sleep 0.5
+done
