@@ -3,6 +3,7 @@
 last_range=0
 min_range=0
 max_range=0
+sound_running=0
 
 while true
 do
@@ -23,10 +24,17 @@ do
         continue
     fi
 
+    if [ $sound_running -eq 0 ]
+    then
+        d=$(dirname $0)
+        sound_running=1
+        . ${d}/play_note &
+    fi
+
     if [[ $a -ge $min_range ]] && [[ $a -le $max_range ]]
     then
         
     fi
-    
+
     sleep 0.5
 done
