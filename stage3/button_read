@@ -1,8 +1,12 @@
 #!/bin/bash
 
-#echo "22" > /sys/class/gpio/unexport          # Пин подключения кнопки (менять, если другой)    
-#echo "22" > /sys/class/gpio/export
-#echo "in" > /sys/class/gpio/gpio22/direction
+echo "22" > /sys/class/gpio/unexport          # Пин подключения кнопки (менять, если другой)    
+echo "22" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio22/direction
+
+echo "23" > /sys/class/gpio/unexport          # Пин подключения кнопки (менять, если другой)
+echo "23" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio23/direction
 
 last_value_0=1
 last_value_1=1
@@ -11,8 +15,8 @@ sleep_time=0.1
 
 while true
 do
-    cur_value_0=$(cat ~/test_button) # cat /sys/class/gpio/gpio22/value
-    cur_value_1=$(cat ~/test_button) # cat /sys/class/gpio/gpio22/value
+    cur_value_0=$(cat /sys/class/gpio/gpio22/value) # cat /sys/class/gpio/gpio22/value
+    cur_value_1=$(cat /sys/class/gpio/gpio23/value) # cat /sys/class/gpio/gpio22/value
 
     if [[ $cur_value_0 -eq 0 ]] || [[ $cur_value_1 -eq 0 ]]
     then
@@ -22,14 +26,14 @@ do
         then
             last_value_0=$cur_value_0
             cur_date=$(date +"%T.%N")
-            echo "Button 0: $cur_date" # >> button_data
+            echo "Button 0: $cur_date" >> button_data &
         fi
 
         if [[ $cur_value_1 -eq 0 ]] && [[ $last_value_1 -ne $cur_value_1 ]]
         then
             last_value_1=$cur_value_1
             cur_date=$(date +"%T.%N")
-            echo "Button 1: $cur_date" # >> button_data
+            echo "Button 1: $cur_date" >> button_data &
         fi
 
     else

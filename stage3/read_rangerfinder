@@ -3,38 +3,91 @@
 last_range=0
 min_range=0
 max_range=0
+set_range=0
 sound_running=0
 
 while true
 do
     read a
-
-    fromPipe=$(cat button_data)
-
-    if [ ${$fromPipe:0:8} = "Button 0" ]
+    
+    a=$(echo $a*1000000 | bc)
+    dot_index=$(expr index "$a" ".")
+    a=${a:0:(($dot_index-1))}
+    echo $a
+    if [ $set_range -eq 0 ]
     then
+        fromPipe=$(cat button_data)
+        echo $fromPipe
+    
+
+    if [ "${fromPipe:0:8}" = "Button 0" ]
+    then
+        echo "set min range: $a"
         min_range=$a
-    elif [ ${$fromPipe:0:8} = "Button 1" ]
+    elif [ "${fromPipe:0:8}" = "Button 1" ]
     then
+        echo "set max range: $a"
         max_range=$a
+    fi
+
     fi
 
     if [[ $max_range -eq 0 ]] || [[ $min_range -eq 0 ]]
     then
+        echo "doing nothing"
         continue
+    else
+        set_range=1
     fi
 
-    if [ $sound_running -eq 0 ]
+#    if [ $sound_running -eq 0 ]
+#    then
+#        d=$(dirname $0)
+#        sound_running=1
+#        . ${d}/play_note &
+#    fi
+
+    diff_dist=$(echo "($max_range-$min_range)/12" | bc)
+    echo "Diff: $diff_dist"
+    if [[ $a -le $(echo "($min_range+$diff_dist)" | bc ) ]]
     then
-        d=$(dirname $0)
-        sound_running=1
-        . ${d}/play_note &
-    fi
-
-    if [[ $a -ge $min_range ]] && [[ $a -le $max_range ]]
+        echo "A" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*2))" | bc) ]]
     then
-        
+        echo "B" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*3))" | bc) ]]
+    then
+        echo "C" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*4))" | bc) ]]
+    then
+        echo "D" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*5))" | bc) ]]
+    then
+        echo "E" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*6))" | bc) ]]
+    then
+        echo "F" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*7))" | bc) ]]
+    then
+        echo "G" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*8))" | bc) ]]
+    then
+        echo "A#" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*9))" | bc) ]]
+    then
+        echo "C#" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*10))" | bc) ]]
+    then
+        echo "D#" | ./play_note
+    elif [[ $a -le $(echo "($min_range+($diff_dist*11))" | bc) ]]
+    then
+        echo "F#" | ./play_note
+    elif [[ $a -le $max_range ]]
+    then
+        echo "G#" | ./play_note
+    else
+	echo "Out of bounds"
     fi
 
-    sleep 0.5
+    sleep 0.2
 done
