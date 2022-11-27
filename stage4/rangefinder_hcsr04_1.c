@@ -298,11 +298,11 @@ int main(int argc, char *argv[])
 		if (exist_fifo == 1) {
 
 			if((fd_fifo=open(argv[2], O_RDWR)) == -1){
-				buff = "-1";
+				buff = "Can't open FIFO";
 			}
 
 			if(read(fd_fifo, &buf, sizeof(buf)) == -1) 
-				buff = "-2";
+				buff = "Can't read FIFO";
 
 		}
 		
