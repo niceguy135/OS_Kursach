@@ -283,6 +283,7 @@ int main(int argc, char *argv[])
 		search_time = (end_time - start_time)/CLOCKS_PER_SEC;
 
 		sl = atoi(argv[argument]);
+		
 
 		struct timespec cur_time;
 
@@ -295,6 +296,7 @@ int main(int argc, char *argv[])
 		int mins = (int)( (cur_secs - 3600 * hours)  / 60);
 
 		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
+
 
 		system("./button_read %d %d", prev_butt_0, prev_butt_1);
 
