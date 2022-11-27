@@ -223,6 +223,7 @@ int main(int argc, char *argv[])
 	int exist_fifo = 0;
 	char buff[100];      //буферная строка для чтения из пайпа
 	int fd_fifo;		 //дескриптор пайпа
+	int prev_butt_0 = 1, prev_butt_1 = 1;
 
 	if (argc > 1) {
 		if ((strcmp(argv[1], "-h") == 0)) {
@@ -295,22 +296,45 @@ int main(int argc, char *argv[])
 
 		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
 
+		system("./button_read %d %d", prev_butt_0, prev_butt_1);
+
 		if (exist_fifo == 1) {
 
 			if((fd_fifo=open(argv[2], O_RDWR)) == -1){
+
 				buff = "Can't open FIFO";
+			} else {
+				if(read(fd_fifo, &buf, sizeof(buf)) == -1) 
+
+					buff = "Can't read FIFO";
+
+				else {									
+					
+					if( strstr(buff, "-1") != NULL) {		//Ставлю новое состояние кнопки
+
+						if(strstr(buff, "Button 0") != NULL) {
+
+							prev_butt_0 = 0;
+							prev_butt_1 = 1;
+						} else {
+
+							prev_butt_0 = 1;
+							prev_butt_1 = 0;
+						}
+					} else {
+
+						prev_butt_0 = 1;
+						prev_butt_1 = 1;
+					}
+				}
 			}
-
-			if(read(fd_fifo, &buf, sizeof(buf)) == -1) 
-				buff = "Can't read FIFO";
-
 		}
 		
 
 		if (!quiet)
 			printf("signal_delay: %lf s; Time: %d-%d-%d; Button info: %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
 		else
-			printf("%lf; %d-%d-%d; Button info: %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
+			printf("%lf; %d-%d-%d; %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
 		fflush(stdout);
 		if ((sl > 0) && (sl < 60000))
 			usleep(sl * 1000);

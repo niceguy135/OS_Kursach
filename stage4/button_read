@@ -8,13 +8,12 @@ echo "23" > /sys/class/gpio/unexport          # Пин подключения к
 echo "23" > /sys/class/gpio/export
 echo "in" > /sys/class/gpio/gpio23/direction
 
-last_value_0=1
-last_value_1=1
+last_value_0=$1
+last_value_1=$2
 
 sleep_time=0.1
 
-while true
-do
+
     cur_value_0=$(cat /sys/class/gpio/gpio22/value)
     cur_value_1=$(cat /sys/class/gpio/gpio23/value)
 
@@ -22,24 +21,24 @@ do
     then
         sleep $sleep_time
 
-        if [[ $cur_value_0 -eq 0 ]] && [[ $last_value_0 -ne $cur_value_0 ]]
+        cur_value_0=$(cat /sys/class/gpio/gpio22/value)
+        cur_value_1=$(cat /sys/class/gpio/gpio23/value)
+
+        if [[ $cur_value_0 -eq 0 ]] && [[ $cur_value_0 -ne $last_value_0 ]]
         then
             last_value_0=$cur_value_0
             cur_date=$(date +"%T.%N")
             echo "Button 0: $cur_date" >> button_data &
-        fi
 
-        if [[ $cur_value_1 -eq 0 ]] && [[ $last_value_1 -ne $cur_value_1 ]]
+        elif [[ $cur_value_1 -eq 0 ]] && [[ $cur_value_1 -ne $last_value_1 ]]
         then
             last_value_1=$cur_value_1
             cur_date=$(date +"%T.%N")
             echo "Button 1: $cur_date" >> button_data &
+        else 
+            echo "-1"
         fi
 
     else
-        last_value_0=$cur_value_0
-        last_value_1=$cur_value_1
+        echo "-1"
     fi
-
-    sleep $sleep_time
-done

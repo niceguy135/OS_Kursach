@@ -14,6 +14,7 @@ do
     dot_index=$(expr index "$a" ".")
     a=${a:0:(($dot_index-1))}
     echo $a
+    
     if [ $set_range -eq 0 ]
     then
         fromPipe=$(cat button_data)
