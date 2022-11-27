@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
 	int quiet = 0;
 
 	int exist_fifo = 0;
-	char buff[100];      //буферная строка для чтения из пайпа
-	int fd_fifo;		 //дескриптор пайпа
-	int prev_butt_0 = 1, prev_butt_1 = 1;
+	char buff[100];      					//буферная строка для чтения из пайпа
+	int fd_fifo;		 					//дескриптор пайпа
+	int prev_butt_0 = 1, prev_butt_1 = 1;   //предыдущее состояние кнопок
 
 	if (argc > 1) {
 		if ((strcmp(argv[1], "-h") == 0)) {
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 		search_time = (end_time - start_time)/CLOCKS_PER_SEC;
 
 		sl = atoi(argv[argument]);
-		
+
 
 		struct timespec cur_time;
 
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 
 		if (exist_fifo == 1) {
 
-			if((fd_fifo=open(argv[2], O_RDWR)) == -1){
+			if((fd_fifo=open(argv[3], O_RDWR)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				buff = "Can't open FIFO";
 			} else {
@@ -338,6 +338,7 @@ int main(int argc, char *argv[])
 		else
 			printf("%lf; %d-%d-%d; %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
 		fflush(stdout);
+
 		if ((sl > 0) && (sl < 60000))
 			usleep(sl * 1000);
 		else
