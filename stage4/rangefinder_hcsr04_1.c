@@ -276,10 +276,22 @@ int main(int argc, char *argv[])
 
 		sl = atoi(argv[argument]);
 
+		struct timespec cur_time;
+
+		clock_gettime(CLOCK_REALTIME, &cur_time);
+
+		long int cur_secs = cur_time.tv_sec % 86400;
+
+		int hours = (int)(cur_secs / 3600);
+
+		int mins = (int)( (cur_secs - 3600 * hours)  / 60);
+
+		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
+
 		if (!quiet)
-			printf("signal_delay: %lf s\n", search_time);
+			printf("signal_delay: %lf s; Time: %d-%d-%d\n", search_time, hours, mins, secs);
 		else
-			printf("%lf\n", search_time);
+			printf("%lf; %d-%d-%d\n", search_time, hours, mins, secs);
 		fflush(stdout);
 		if ((sl > 0) && (sl < 60000))
 			usleep(sl * 1000);
