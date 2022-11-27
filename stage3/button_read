@@ -15,8 +15,8 @@ sleep_time=0.1
 
 while true
 do
-    cur_value_0=$(cat /sys/class/gpio/gpio22/value) # cat /sys/class/gpio/gpio22/value
-    cur_value_1=$(cat /sys/class/gpio/gpio23/value) # cat /sys/class/gpio/gpio22/value
+    cur_value_0=$(cat /sys/class/gpio/gpio22/value)
+    cur_value_1=$(cat /sys/class/gpio/gpio23/value)
 
     if [[ $cur_value_0 -eq 0 ]] || [[ $cur_value_1 -eq 0 ]]
     then

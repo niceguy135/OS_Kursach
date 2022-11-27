@@ -40,13 +40,6 @@ do
         set_range=1
     fi
 
-#    if [ $sound_running -eq 0 ]
-#    then
-#        d=$(dirname $0)
-#        sound_running=1
-#        . ${d}/play_note &
-#    fi
-
     diff_dist=$(echo "($max_range-$min_range)/12" | bc)
     echo "Diff: $diff_dist"
     if [[ $a -le $(echo "($min_range+$diff_dist)" | bc ) ]]
