@@ -219,6 +219,11 @@ void help()
 int main(int argc, char *argv[])
 {
 	int quiet = 0;
+
+	int exist_fifo = 0;
+	char buff[100];      //буферная строка для чтения из пайпа
+	int fd_fifo;		 //дескриптор пайпа
+
 	if (argc > 1) {
 		if ((strcmp(argv[1], "-h") == 0)) {
 			help();
@@ -228,6 +233,8 @@ int main(int argc, char *argv[])
 				quiet = 1;
 			}
 		}
+
+		if (argc > 2) exist_fifo = 1;
 	}
 
 	if ((quiet && argc != 3) || (!quiet && argc != 2)) {
@@ -278,7 +285,7 @@ int main(int argc, char *argv[])
 
 		struct timespec cur_time;
 
-		clock_gettime(CLOCK_REALTIME, &cur_time);
+		clock_gettime(CLOCK_REALTIME, &cur_time); //Работаю со временем
 
 		long int cur_secs = cur_time.tv_sec % 86400;
 
@@ -288,10 +295,22 @@ int main(int argc, char *argv[])
 
 		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
 
+		if (exist_fifo == 1) {
+
+			if((fd_fifo=open(argv[2], O_RDWR)) == -1){
+				buff = "-1";
+			}
+
+			if(read(fd_fifo, &buf, sizeof(buf)) == -1) 
+				buff = "-2";
+
+		}
+		
+
 		if (!quiet)
-			printf("signal_delay: %lf s; Time: %d-%d-%d\n", search_time, hours, mins, secs);
+			printf("signal_delay: %lf s; Time: %d-%d-%d; Button info: %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
 		else
-			printf("%lf; %d-%d-%d\n", search_time, hours, mins, secs);
+			printf("%lf; %d-%d-%d; Button info: %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
 		fflush(stdout);
 		if ((sl > 0) && (sl < 60000))
 			usleep(sl * 1000);
