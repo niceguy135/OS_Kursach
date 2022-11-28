@@ -23,4 +23,4 @@ sudo ./rangefinder_hcr04_1 -q 1000 | sudo ./read_rangerfinder
 
 Ну, вот еще вам красивой девочки в придачу)
 
-![Just image](https://github.com/niceguy135/OS_Kursach/blob/master/very_important_file.jpg)
+![Just image](https://github.com/niceguy135/OS_Kursach/blob/master/defaults/very_important_file.jpg)
