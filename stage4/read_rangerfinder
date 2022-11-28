@@ -12,32 +12,34 @@ do
     buff=$data
 
     part_index=$(expr index "$buff" ";")
-    dist=${data:0:(($part_index-1))}
-    buff=${data:(($part_index+1))}
+    dist=${buff:0:(($part_index-1))}
+    buff=${buff:(($part_index+1))}
 
     part_index=$(expr index "$buff" ";")
-    time=${data:0:(($part_index-1))}
-    buff=${data:(($part_index+1))}
+    rtime=${buff:0:(($part_index-1))}
+    buff=${buff:(($part_index+1))}
 
     part_index=$(expr index "$buff" ";")
-    button=${data:0:(($part_index-1))}
+    button=${buff:0:(($part_index-1))}
 
-
-    working_dist=$(echo $data*1000000 | bc)
+    working_dist=$(echo $dist*1000000 | bc)
     dot_index=$(expr index "$working_dist" ".")
     working_dist=${working_dist:0:(($dot_index-1))}
 
     if [ $set_range -eq 0 ]
     then   
-
-    if [ "${button:0:8}" = "Button 0" ]
+    if [[ ${button:0:8} == "Button 0" ]]
     then
         echo "set min range: $working_dist"
         min_range=$working_dist
-    elif [ "${button:0:8}" = "Button 1" ]
+    elif [[ ${button:0:8} = "Button 1" ]]
     then
         echo "set max range: $working_dist"
         max_range=$working_dist
+#    elif [[ *"$button"* = "-1" ]]
+#    then
+#        echo "set max range: $working_dist"
+#        max_range=$working_dist
     fi
 
     fi
@@ -55,43 +57,42 @@ do
     
     if [[ $working_dist -le $(echo "($min_range+$diff_dist)" | bc ) ]]
     then
-        echo "A" | ./play_note
+        echo "A" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*2))" | bc) ]]
     then
-        echo "B" | ./play_note
+        echo "B" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*3))" | bc) ]]
     then
-        echo "C" | ./play_note
+        echo "C" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*4))" | bc) ]]
     then
-        echo "D" | ./play_note
+        echo "D" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*5))" | bc) ]]
     then
-        echo "E" | ./play_note
+        echo "E" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*6))" | bc) ]]
     then
-        echo "F" | ./play_note
+        echo "F" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*7))" | bc) ]]
     then
-        echo "G" | ./play_note
+        echo "G" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*8))" | bc) ]]
     then
-        echo "A#" | ./play_note
+        echo "A#" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*9))" | bc) ]]
     then
-        echo "C#" | ./play_note
+        echo "C#" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*10))" | bc) ]]
     then
-        echo "D#" | ./play_note
+        echo "D#" | ./play_note -q
     elif [[ $working_dist -le $(echo "($min_range+($diff_dist*11))" | bc) ]]
     then
-        echo "F#" | ./play_note
+        echo "F#" | ./play_note -q
     elif [[ $working_dist -le $max_range ]]
     then
-        echo "G#" | ./play_note
+        echo "G#" | ./play_note -q
     else
 	echo "Out of bounds"
     fi
 
-    sleep 1 #взял столько из рассчета. что дальнометру буду задавать задержку в 1 секунду
 done
