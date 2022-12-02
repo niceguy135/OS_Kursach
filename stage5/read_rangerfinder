@@ -1,0 +1,110 @@
+#!/bin/bash
+
+last_range=0
+min_range=0
+max_range=0
+set_range=0
+sound_running=0
+
+while true
+do
+    read data  # Получаю общую строку (в ней и дистанция, и время, и инфа о кнопках)
+    buff=$data 
+
+    ######################################
+    # Парсинг дистанциии и общей строки
+    part_index=$(expr index "$buff" ";")
+    dist=${buff:0:(($part_index-1))}
+    buff=${buff:(($part_index+1))}
+    ######################################
+
+    ######################################
+    # Парсинг времени из общей строки
+    part_index=$(expr index "$buff" ";")
+    rtime=${buff:0:(($part_index-1))}
+    buff=${buff:(($part_index+1))}
+    ######################################
+
+    ######################################
+    # Парсинг нажатия кнопки
+    part_index=$(expr index "$buff" ";")
+    button=${buff:0:(($part_index-1))}
+    ######################################
+
+    ######################################
+    # Преобразования дистанции в нормальный для работы вид
+    working_dist=$(echo $dist*1000000 | bc)
+    dot_index=$(expr index "$working_dist" ".")
+    working_dist=${working_dist:0:(($dot_index-1))}
+    ######################################
+
+    if [ $set_range -eq 0 ]
+    then   
+        if [[ ${button:0:8} == "Button 0" ]]
+        then
+            echo "set min range: $working_dist"
+            min_range=$working_dist
+
+        elif [[ ${button:0:8} = "Button 1" ]]
+        then
+            echo "set max range: $working_dist"
+            max_range=$working_dist
+        fi
+
+    fi
+
+    if [[ $max_range -eq 0 ]] || [[ $min_range -eq 0 ]]
+    then
+        echo "Doing nothing"
+        continue
+
+    else
+        diff_dist=$(echo "($max_range-$min_range)/12" | bc)
+        echo "Diff range: $diff_dist"
+        set_range=1
+        
+    fi
+
+    
+    
+    if [[ $working_dist -le $(echo "($min_range+$diff_dist)" | bc ) ]]
+    then
+        echo "A" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*2))" | bc) ]]
+    then
+        echo "B" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*3))" | bc) ]]
+    then
+        echo "C" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*4))" | bc) ]]
+    then
+        echo "D" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*5))" | bc) ]]
+    then
+        echo "E" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*6))" | bc) ]]
+    then
+        echo "F" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*7))" | bc) ]]
+    then
+        echo "G" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*8))" | bc) ]]
+    then
+        echo "A#" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*9))" | bc) ]]
+    then
+        echo "C#" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*10))" | bc) ]]
+    then
+        echo "D#" | ./play_note -q
+    elif [[ $working_dist -le $(echo "($min_range+($diff_dist*11))" | bc) ]]
+    then
+        echo "F#" | ./play_note -q
+    elif [[ $working_dist -le $max_range ]]
+    then
+        echo "G#" | ./play_note -q
+    else
+	echo "Out of bounds"
+    fi
+
+done

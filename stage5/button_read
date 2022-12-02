@@ -1,0 +1,52 @@
+#!/bin/bash
+
+sudo echo "22" >> /sys/class/gpio/unexport          # Пин подключения кнопки (менять, если другой)    
+sudo echo "22" >> /sys/class/gpio/export
+sudo echo "in" > /sys/class/gpio/gpio22/direction
+
+sudo echo "23" >> /sys/class/gpio/unexport          # Пин подключения кнопки (менять, если другой)
+sudo echo "23" >> /sys/class/gpio/export
+sudo echo "in" > /sys/class/gpio/gpio23/direction
+
+last_value_0="$1"
+last_value_1="$2"
+
+sleep_time=0.1
+
+    cur_value_0=$(cat /sys/class/gpio/gpio22/value)
+    cur_value_1=$(cat /sys/class/gpio/gpio23/value)
+
+    if [[ $cur_value_0 -eq 0 ]] || [[ $cur_value_1 -eq 0 ]]
+    then
+        sleep $sleep_time
+
+        cur_value_0=$(cat /sys/class/gpio/gpio22/value)
+        cur_value_1=$(cat /sys/class/gpio/gpio23/value)
+
+        if [[ $cur_value_0 -eq "0" ]] && [[ $cur_value_0 -ne $last_value_0 ]]
+        then
+            cur_date=$(date +"%T.%N")
+            text="Button 0: $cur_date"
+            echo -n $text > ./buff
+            cat ./buff > button_data &
+
+        elif [[ $cur_value_1 -eq "0" ]] && [[ $cur_value_1 -ne $last_value_1 ]]
+        then
+            cur_date=$(date +"%T.%N")
+            text="Button 1: $cur_date"
+            echo -n $text > ./buff
+            cat ./buff > button_data &
+
+        else 
+            text="-2"
+            echo -n $text > ./buff
+            cat ./buff > button_data &
+
+        fi
+
+    else
+	text="-1"
+        echo -n $text > ./buff
+        cat ./buff > button_data &
+
+    fi
