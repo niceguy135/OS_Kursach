@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
@@ -79,8 +80,13 @@ int main(int argc, char *argv[])
 
 						if(strstr(buff0, "Button 0") != NULL)
 							prev_butt_0 = 0;                //Единичное списывание кнопки
-                        else 
-                            prev_butt_0 = 1;                //Кнопка зажата
+                        else if(strstr(buff0, "-2") != NULL)
+                            prev_butt_0 = 1;               //Кнопка зажата
+						else if(strstr(buff0, "SIGINT") != NULL) {
+							printf("Catch SIGINT from RF1! Closing... ");
+							kill(get_pid(),SIGKILL);
+						}
+
 					} else {
 						prev_butt_0 = 1;                    //Нихуя не нажато
 					}
@@ -103,8 +109,12 @@ int main(int argc, char *argv[])
 
 						if(strstr(buff1, "Button 1") != NULL)
 							prev_butt_1 = 0;                //Единичное списывание кнопки
-                        else 
-                            prev_butt_1 = 1;                //Кнопка зажата
+                        else if(strstr(buff1, "-2") != NULL)
+                            prev_butt_1 = 1;               //Кнопка зажата
+						else if(strstr(buff1, "SIGINT") != NULL) {
+							printf("Catch SIGINT from RF2! Closing... ");
+							kill(get_pid(),SIGKILL);
+						}               
 					} else {
 						prev_butt_1 = 1;                    //Нихуя не нажато
 					}

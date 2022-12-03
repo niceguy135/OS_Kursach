@@ -216,8 +216,26 @@ void help()
 
 #define TIMEOUT_SEC 2
 
+void handler(){
+	int fg_sig;
+	if((fd_sig=open("./range_data_1", O_WRONLY)) == -1){ 
+
+		printf("RF1 got SIGINT! Process: %d", get_pid());
+	} else {
+		char msg[] = {"SIGINT %d", get_pid()};
+		write(fs_sig, &msg, sizeof(msg))
+	}
+
+	kill(get_pid(), SIGKILL);
+}
+
 int main(int argc, char *argv[])
 {
+	struct sigaction act = {};
+
+	act.sa_handler = &handler;
+	sigaction(SIGINT, &act, NULL);
+
 	int quiet = 0;
 
 	int exist_fifo = 0;
@@ -285,9 +303,9 @@ int main(int argc, char *argv[])
 			} else {
 
 				if (!quiet)
-					read(fd_fifo_0, &buff0, sizeof(buff0))
+					write(fd_fifo_0, &buff0, sizeof(buff0))
 				else
-					read(fd_fifo_0, &buff0, sizeof(buff0))
+					write(fd_fifo_0, &buff0, sizeof(buff0))
 				fflush(stdout); //???
 			}
 		}

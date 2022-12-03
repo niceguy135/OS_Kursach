@@ -214,10 +214,27 @@ void help()
 	printf("    -q - quiet\n");
 }
 
+void handler(){
+	int fg_sig;
+	if((fd_sig=open("./range_data_2", O_WRONLY)) == -1){ 
+
+		printf("RF2 got SIGINT! Process: %d", get_pid());
+	} else {
+		char msg[] = {"SIGINT %d", get_pid()};
+		write(fs_sig, &msg, sizeof(msg))
+	}
+
+	kill(get_pid(), SIGKILL);
+}
+
 #define TIMEOUT_SEC 2
 
 int main(int argc, char *argv[])
 {
+    struct sigaction act = {};
+
+	act.sa_handler = &handler;
+	sigaction(SIGINT, &act, NULL);
 	int quiet = 0;
 
 	int exist_fifo = 0;
