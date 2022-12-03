@@ -221,8 +221,7 @@ int main(int argc, char *argv[])
 	int quiet = 0;
 
 	int exist_fifo = 0;
-	int fd_fifo;		 					//дескриптор пайпа
-	int prev_butt_0 = 1, prev_butt_1 = 1;   //предыдущее состояние кнопок
+	int fd_fifo_0;		 					//дескриптор пайпа
 
 	if (argc > 1) {
 		if ((strcmp(argv[1], "-h") == 0)) {
@@ -234,7 +233,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		if (argc > 3) exist_fifo = 1;
+		if (argc > 2) exist_fifo = 1;
 	}
 
 	if (!quiet)
@@ -254,8 +253,6 @@ int main(int argc, char *argv[])
 
 	double sl;
 	while (1) {
-		char buff[100] = {""};
-		strcpy(buff,"");
 		GPIOWrite(TRIG, 1);
 		usleep(10);
 		GPIOWrite(TRIG, 0);
@@ -279,79 +276,23 @@ int main(int argc, char *argv[])
 		search_time = (end_time - start_time)/CLOCKS_PER_SEC;
 
 		sl = atoi(argv[argument]);
-
-
-		struct timespec cur_time;
-
-		clock_gettime(CLOCK_REALTIME, &cur_time); //Работаю со временем
-
-		long int cur_secs = cur_time.tv_sec % 86400;
-
-		int hours = (int)(cur_secs / 3600);
-
-		int mins = (int)( (cur_secs - 3600 * hours)  / 60);
-
-		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
-                
-                char command[80] = "./button_read ";
-
-		char number0[1];
-		sprintf(number0, "%d", prev_butt_0);
-
-		char number1[1];
-                sprintf(number1, "%d", prev_butt_1);
-
-                char *command1 = strcat(command, number0); //dodelai
-
-		char *command2 = strcat(command, " ");
-
-		char *command3 = strcat(command, number1);
-
-		system(command3);
-
+		
 		if (exist_fifo == 1) {
+			if((fd_fifo_0=open(argv[2], O_WRONLY)) == -1){ 
 
-			if((fd_fifo=open(argv[3], O_RDWR)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
-
-				strcpy(buff, "Can't open FIFO");
+				printf("Can't open FIFO for write distance RF1");
+                return -1;
 			} else {
-				if(read(fd_fifo, &buff, sizeof(buff)) == -1) 
 
-					strcpy(buff, "Can't read FIFO");
-
-				else {		
-
-					if( strstr(buff, "-1") == NULL) {		//Ставлю новое состояние кнопки
-
-						if(strstr(buff, "Button 0") != NULL) {
-
-							prev_butt_0 = 0;
-							prev_butt_1 = 1;
-
-						} else if (strstr(buff, "Button 1") != NULL) {
-
-							prev_butt_0 = 1;
-							prev_butt_1 = 0;
-
-						}
-					} else {
-
-						prev_butt_0 = 1;
-						prev_butt_1 = 1;
-
-					}
-				}
+				if (!quiet)
+					read(fd_fifo_0, &buff0, sizeof(buff0))
+				else
+					read(fd_fifo_0, &buff0, sizeof(buff0))
+				fflush(stdout); //???
 			}
 		}
-		
 
-		if (!quiet)
-			printf("signal_delay: %lf s; Time: %d-%d-%d; Button info: %s\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
-		else
-			printf("%lf; %d-%d-%d; %s;\n", search_time, hours, mins, secs, exist_fifo == 1 ? buff : "No path to FIFO");
-		fflush(stdout);
 
-		strcpy(buff,"");
 
 		if ((sl > 0) && (sl < 60000))
 			usleep(sl * 1000);

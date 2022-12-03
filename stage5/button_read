@@ -11,7 +11,7 @@ sudo echo "in" > /sys/class/gpio/gpio23/direction
 last_value_0="$1"
 last_value_1="$2"
 
-sleep_time=0.1
+sleep_time=0.05
 
     cur_value_0=$(cat /sys/class/gpio/gpio22/value)
     cur_value_1=$(cat /sys/class/gpio/gpio23/value)
@@ -27,26 +27,28 @@ sleep_time=0.1
         then
             cur_date=$(date +"%T.%N")
             text="Button 0: $cur_date"
-            echo -n $text > ./buff
-            cat ./buff > button_data &
+            echo $text > button_data_b0 &
+        else 
+            text="-2"
+            echo $text > button_data_b0 &
 
-        elif [[ $cur_value_1 -eq "0" ]] && [[ $cur_value_1 -ne $last_value_1 ]]
+        fi
+
+        if [[ $cur_value_1 -eq "0" ]] && [[ $cur_value_1 -ne $last_value_1 ]]
         then
             cur_date=$(date +"%T.%N")
             text="Button 1: $cur_date"
-            echo -n $text > ./buff
-            cat ./buff > button_data &
+            echo $text > button_data_b1 &
 
         else 
             text="-2"
-            echo -n $text > ./buff
-            cat ./buff > button_data &
+            echo $text > button_data_b1 &
 
         fi
 
     else
-	text="-1"
-        echo -n $text > ./buff
-        cat ./buff > button_data &
+	    text="-1"
+        echo $text > button_data_b0 &
+        echo $text > button_data_b1 &
 
     fi
