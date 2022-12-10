@@ -20,19 +20,9 @@ int main(int argc, char *argv[])
 	int range_max=0, range_min=0;
 	int volume_max=0, volume_min=0;
 
-	if (argc > 6) {
-		if ((strcmp(argv[1], "-h") == 0)) {
-			help();
-			return 0;
-		} else {
-			if ((strcmp(argv[1], "-q") == 0)) {
-				quiet = 1;
-			}
-		}
+	if (argc > 5) {
         exist_fifo = 1;
 	}
-	if (!quiet)
-		printf("\nThe Notes application was started\n\n");
 
 	while (1) {
 
@@ -65,7 +55,7 @@ int main(int argc, char *argv[])
 
         if (exist_fifo == 1) {
 
-			if((fd_fifo_0=open(argv[2], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+			if((fd_fifo_0=open(argv[1], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for button 0");
                 return -1;
@@ -82,19 +72,17 @@ int main(int argc, char *argv[])
 						if(strstr(buff0, "Button 0") != NULL)
 							prev_butt_0 = 0;                //Единичное списывание кнопки
                         else if(strstr(buff0, "-2") != NULL)
-                            prev_butt_0 = 1;               //Кнопка зажата
-						else if(strstr(buff0, "SIGINT") != NULL) {
-							printf("Catch SIGINT from RF1! Closing... ");
-							kill(getpid(),SIGKILL);
-						}
+                            prev_butt_0 = 1;               //Кнопка зажаnf
 
 					} else {
 						prev_butt_0 = 1;                    //Нихуя не нажато
 					}
 				}
+
+				close(fd_fifo_0);
 			}
 
-            if((fd_fifo_1=open(argv[3], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+            if((fd_fifo_1=open(argv[2], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for button 1");
                 return -1;
@@ -112,17 +100,16 @@ int main(int argc, char *argv[])
 							prev_butt_1 = 0;                //Единичное списывание кнопки
                         else if(strstr(buff1, "-2") != NULL)
                             prev_butt_1 = 1;               //Кнопка зажата
-						else if(strstr(buff1, "SIGINT") != NULL) {
-							printf("Catch SIGINT from RF2! Closing... ");
-							kill(getpid(),SIGKILL);
-						}               
+              
 					} else {
 						prev_butt_1 = 1;                    //Нихуя не нажато
 					}
 				}
+
+				close(fd_fifo_1);
 			}
 
-            if((fd_fifo_rf_1=open(argv[4], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+            if((fd_fifo_rf_1=open(argv[3], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for RangeFinder1");
                 return -1;
@@ -130,10 +117,17 @@ int main(int argc, char *argv[])
 				if(read(fd_fifo_rf_1, &buff_rf_1, sizeof(buff_rf_1)) == -1) {
                     strcpy(buff_rf_1, "Can't read FIFO for RangeFinder1");
                     return -1;
-                }
+                } else {
+					if(strstr(buff_rf_1, "SIGINT") != NULL) {
+							printf("Catch SIGINT from RF1! Closing... ");
+							kill(getpid(),SIGKILL);
+						}
+				}
+
+				close(fd_fifo_1);
 			}
 
-            if((fd_fifo_rf_2=open(argv[5], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+            if((fd_fifo_rf_2=open(argv[4], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for RangeFinder2");
                 return -1;
@@ -141,9 +135,21 @@ int main(int argc, char *argv[])
 				if(read(fd_fifo_rf_2, &buff_rf_2, sizeof(buff_rf_2)) == -1) {
                     strcpy(buff_rf_2, "Can't read FIFO for RangeFinder2");
                     return -1;
-                }
+                } else {
+					if(strstr(buff_rf_2, "SIGINT") != NULL) {
+							printf("Catch SIGINT from RF2! Closing... ");
+							kill(getpid(),SIGKILL);
+						}
+				}
+
+				close(fd_fifo_rf_2);
 			}
 		}
+
+		printf("From button0: %s", buff0);
+		printf("From button1: %s", buff1);
+		printf("From rf1: %s", buff_rf_1);
+		printf("From rf2: %s", buff_rf_2);
 
 		if (prev_butt_0 == 0) {
 			printf("Start recolibrating!\n");
@@ -166,15 +172,15 @@ int main(int argc, char *argv[])
 				range_max = range_cur;
 				printf("Time: %d-%d-%d; Settting the max range for notes. Range is: %d\n",hours, mins, secs, range_max);
 
-			} //else
-			// 	printf("Calibrate range for notes!\n");
+			} else
+			 	printf("Calibrate range for notes!\n");
 
 			if (prev_butt_1 == 0 && volume_max == 0) {
 
 				volume_max = volume_cur;
 				printf("Time: %d-%d-%d; Settting the max volume for notes. Range is: %d\n",hours, mins, secs, volume_max);
-			} //else
-			//	printf("Calibrate volume for notes!\n");
+			} else
+				printf("Calibrate volume for notes!\n");
 		}
 
 		char note[3] = {""};
@@ -233,82 +239,55 @@ int main(int argc, char *argv[])
 		} else continue;
         
 		if ((note[0] == 'A') && (note[1] != '#')) {
-			system("aplay ./notes/A4.wav -q");
-			printf("Time: %d-%d-%d; Playing A#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/A4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing A#",hours, mins, secs, volume);
 		}
 		if (note[0] == 'B') {
-			system("aplay ./notes/B4.wav -q");
-			printf("Time: %d-%d-%d; Playing B",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/B4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing B",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'C') && (note[1] != '#')) {
-			system("aplay ./notes/C4.wav -q");
-			printf("Time: %d-%d-%d; Playing C#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/C4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing C#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'D') && (note[1] != '#')) {
-			system("aplay ./notes/D4.wav -q");
-			printf("Time: %d-%d-%d; Playing D#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/D4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing D#",hours, mins, secs, volume);
 		}
 		if (note[0] == 'E') {
-			system("aplay ./notes/E4.wav -q");
-			printf("Time: %d-%d-%d; Playing E",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/E4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing E",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'F') && (note[1] != '#')) {
-			system("aplay ./notes/F4.wav -q");
-			printf("Time: %d-%d-%d; Playing F#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/F4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing F#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'G') && (note[1] != '#')) {
-			system("aplay ./notes/G4.wav -q");
-			printf("Time: %d-%d-%d; Playing G#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/G4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing G#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'A') && (note[1] == '#')) {
-			system("aplay ./notes/Ad4.wav -q");
-			printf("Time: %d-%d-%d; Playing A#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/Ad4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing A#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'C') && (note[1] == '#')) {
-			system("aplay ./notes/Cd4.wav -q");
-			printf("Time: %d-%d-%d; Playing C#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/Cd4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing C#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'D') && (note[1] == '#')) {
-			system("aplay ./notes/Dd4.wav -q");
-			printf("Time: %d-%d-%d; Playing D#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/Dd4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing D#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'F') && (note[1] == '#')) {
-			system("aplay ./notes/Fd4.wav -q");
-			printf("Time: %d-%d-%d; Playing F#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/Fd4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing F#",hours, mins, secs, volume);
 		}
 		if ((note[0] == 'G') && (note[1] == '#')) {
-			system("aplay ./notes/Gd4.wav -q");
-			printf("Time: %d-%d-%d; Playing G#",hours, mins, secs);
-        	return 0;
+			//system("aplay ./notes/Gd4.wav -q");
+			printf("Time: %d-%d-%d; Volume: %s Playing G#",hours, mins, secs, volume);
 		}
 		fflush(stdout);
 	}
 
 	return 0;
-}
-
-void help()
-{
-	printf("    Use this application for plaing notes\n");
-	printf("    execute format: ./notes\n");
-	printf("    -h - help\n");
-	printf("    -q - quiet\n");
-	printf("    input format (from stdin):\n");
-	printf("        NOTE\n");
-	printf("    NOTE - note name in scientific pitch notation\n");
-	printf("    Example:\n");
-	printf("    ./notes -q\n");
-	printf("    A\n");
-	printf("    playing A\n");
 }

@@ -321,7 +321,8 @@ int main(int argc, char *argv[])
 					write(fd_fifo_0, buff0, strlen(buff0)+1);
 				else
 					write(fd_fifo_0, buff0, strlen(buff0)+1);
-				fflush(stdout); //???
+
+				close(fd_fifo_0);
 			}
 		}
 
