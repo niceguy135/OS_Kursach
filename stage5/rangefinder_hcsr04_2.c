@@ -214,31 +214,39 @@ void help()
 	printf("    -q - quiet\n");
 }
 
+#define TIMEOUT_SEC 2
+
 void handler(){
 	int fg_sig;
-	if((fd_sig=open("./range_data_2", O_WRONLY)) == -1){ 
 
-		printf("RF2 got SIGINT! Process: %d", get_pid());
+	char num[6];
+	sprintf(num, "%d", getpid());
+
+	if((fg_sig=open("./range_data_2", O_RDWR)) == -1){ 
+
+		printf("RF2 got SIGINT! Process: %d", getpid());
 	} else {
-		char msg[] = {"SIGINT %d", get_pid()};
-		write(fs_sig, &msg, sizeof(msg))
+		printf("SIGINT!\n");
+		char* msg = strcat("SIGINT ", num);
+		write(fg_sig, &msg, sizeof(msg));
 	}
 
-	kill(get_pid(), SIGKILL);
+	kill(getpid(), SIGKILL);
 }
-
-#define TIMEOUT_SEC 2
 
 int main(int argc, char *argv[])
 {
-    struct sigaction act = {};
+	sleep(1);
+
+	struct sigaction act = {};
 
 	act.sa_handler = &handler;
 	sigaction(SIGINT, &act, NULL);
+
 	int quiet = 0;
 
 	int exist_fifo = 0;
-	int fd_fifo_1;		 					//дескриптор пайпа
+	int fd_fifo_1 = 0;		 					//дескриптор пайпа
 
 	if (argc > 1) {
 		if ((strcmp(argv[1], "-h") == 0)) {
@@ -270,6 +278,9 @@ int main(int argc, char *argv[])
 
 	double sl;
 	while (1) {
+		char buff0[100] = {""};
+		strcpy(buff0,"");
+
 		GPIOWrite(TRIG, 1);
 		usleep(10);
 		GPIOWrite(TRIG, 0);
@@ -292,19 +303,24 @@ int main(int argc, char *argv[])
 		double end_time = clock();
 		search_time = (end_time - start_time)/CLOCKS_PER_SEC;
 
+		char stringNum[50];
+		sprintf(stringNum, "%f", search_time);
+
+		strcpy(buff0, stringNum);
+
 		sl = atoi(argv[argument]);
 		
 		if (exist_fifo == 1) {
-			if((fd_fifo_1=open(argv[2], O_WRONLY)) == -1){ 
+			if((fd_fifo_1=open(argv[3], O_RDWR)) == -1){ 
 
 				printf("Can't open FIFO for write distance RF1");
                 return -1;
 			} else {
 
 				if (!quiet)
-					read(fd_fifo_1, &buff0, sizeof(buff0))
+					write(fd_fifo_1, buff0, strlen(buff0)+1);
 				else
-					read(fd_fifo_1, &buff0, sizeof(buff0))
+					write(fd_fifo_1, buff0, strlen(buff0)+1);
 				fflush(stdout); //???
 			}
 		}

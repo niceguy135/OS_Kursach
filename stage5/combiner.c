@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 		int mins = (int)( (cur_secs - 3600 * hours)  / 60);
 		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
               
-        char command[80] = "./button_read ";
+        char command[80] = "sudo ./button_read ";
 		char number0[1];
 		sprintf(number0, "%d", prev_butt_0);
 		char number1[1];
@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
 		char *command2 = strcat(command, " ");
 		char *command3 = strcat(command, number1);
 		system(command3);
+		printf("%s\n", command3);
 
         if (exist_fifo == 1) {
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
                             prev_butt_0 = 1;               //Кнопка зажата
 						else if(strstr(buff0, "SIGINT") != NULL) {
 							printf("Catch SIGINT from RF1! Closing... ");
-							kill(get_pid(),SIGKILL);
+							kill(getpid(),SIGKILL);
 						}
 
 					} else {
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
                             prev_butt_1 = 1;               //Кнопка зажата
 						else if(strstr(buff1, "SIGINT") != NULL) {
 							printf("Catch SIGINT from RF2! Closing... ");
-							kill(get_pid(),SIGKILL);
+							kill(getpid(),SIGKILL);
 						}               
 					} else {
 						prev_butt_1 = 1;                    //Нихуя не нажато
@@ -155,26 +156,29 @@ int main(int argc, char *argv[])
 
 		float volume_float = atof(buff_rf_2);
 		int volume_cur = (int)(volume_float * 1000000);
+
+		printf("Cur dist: %d\n", range_cur);
+		printf("Cur volume: %d\n", volume_cur);
         
-        if (range_max == 0 && volume_max == 0) {
+        if (range_max == 0 || volume_max == 0) {
 			if(prev_butt_1 == 0 && range_max == 0) {
 
 				range_max = range_cur;
-				print("Time: %d-%d-%d; Settting the max range for notes. Range is: %d\n",hours, mins, secs, range_max);
+				printf("Time: %d-%d-%d; Settting the max range for notes. Range is: %d\n",hours, mins, secs, range_max);
 
-			} else
-				printf("Calibrate range for notes!\n");
+			} //else
+			// 	printf("Calibrate range for notes!\n");
 
 			if (prev_butt_1 == 0 && volume_max == 0) {
 
 				volume_max = volume_cur;
-				print("Time: %d-%d-%d; Settting the max volume for notes. Range is: %d\n",hours, mins, secs, volume_max);
-			} else
-				printf("Calibrate volume for notes!\n");
+				printf("Time: %d-%d-%d; Settting the max volume for notes. Range is: %d\n",hours, mins, secs, volume_max);
+			} //else
+			//	printf("Calibrate volume for notes!\n");
 		}
 
-		char note[2] = {""};
-		char volume[3] = {""};
+		char note[3] = {""};
+		char volume[4] = {""};
 		strcpy(note,"");
 		strcpy(volume,"");
 
