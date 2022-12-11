@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	int range_max=0, range_min=0;
 	int volume_max=0, volume_min=0;
 
-	if (argc > 5) {
+	if (argc >= 5) {
         exist_fifo = 1;
 	}
 
@@ -50,21 +50,21 @@ int main(int argc, char *argv[])
         char *command1 = strcat(command, number0);
 		char *command2 = strcat(command, " ");
 		char *command3 = strcat(command, number1);
-		system(command3);
-		printf("%s\n", command3);
+		char *command4 = strcat(command, " &");
+		system(command4);
 
         if (exist_fifo == 1) {
 
-			if((fd_fifo_0=open(argv[1], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+			if((fd_fifo_0=open("button_data_b0", O_RDONLY)) <= -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for button 0");
                 return -1;
 			} else {
-				if(read(fd_fifo_0, &buff0, sizeof(buff0)) == -1) {
+				
+				if(read(fd_fifo_0, buff0, sizeof(buff0)) == -1) {
                     strcpy(buff0, "Can't read FIFO for button 0");
                     return -1;
                 }
-
 				else {		
 
 					if( strstr(buff0, "-1") == NULL) {		//Ставлю новое состояние кнопки
@@ -82,11 +82,11 @@ int main(int argc, char *argv[])
 				close(fd_fifo_0);
 			}
 
-            if((fd_fifo_1=open(argv[2], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+            if((fd_fifo_1=open("button_data_b1", O_RDONLY)) <= -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for button 1");
                 return -1;
-			} else {
+			} else { 
 				if(read(fd_fifo_1, &buff1, sizeof(buff1)) == -1) {
                     strcpy(buff1, "Can't read FIFO for button 1");
                     return -1;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 				close(fd_fifo_1);
 			}
 
-            if((fd_fifo_rf_1=open(argv[3], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+            if((fd_fifo_rf_1=open("range_data_1", O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for RangeFinder1");
                 return -1;
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 				close(fd_fifo_1);
 			}
 
-            if((fd_fifo_rf_2=open(argv[4], O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
+            if((fd_fifo_rf_2=open("range_data_2", O_RDONLY)) == -1){      //TODO: херня сломается, если не будет quiet. Доработать, елси понадобиться
 
 				printf("Can't open FIFO for RangeFinder2");
                 return -1;
@@ -146,10 +146,10 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		printf("From button0: %s", buff0);
-		printf("From button1: %s", buff1);
-		printf("From rf1: %s", buff_rf_1);
-		printf("From rf2: %s", buff_rf_2);
+		// printf("From button0: %s", buff0);
+		// printf("From button1: %s", buff1);
+		// printf("From rf1: %s\n", buff_rf_1);
+		// printf("From rf2: %s\n", buff_rf_2);
 
 		if (prev_butt_0 == 0) {
 			printf("Start recolibrating!\n");
