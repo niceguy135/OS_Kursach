@@ -4,15 +4,75 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <pthread.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
+
+#define SUCCESS 0
+
+typedef struct stdinCommands {
+    int id;
+    char *stdin_command;
+    int range_min;
+    int range_max;
+} command;
 
 void handler(){
 	printf("Catch a SIGINT! Shutting off...");
     return -2;
 }
 
+void* readFromStdin(void *args) {
+    command *arg = (command*) args;
+
+    if( strstr(arg->stdin_command, "start") != NULL ) {
+
+        if( strstr(arg->stdin_command, "rangefinder_1") != NULL ) {
+            system("sudo ./rangefinder_hcsr04_1");
+
+        } else if ( strstr(arg->stdin_command, "rangefinder_2") != NULL ) {
+            system("sudo ./rangefinder_hcsr04_2");
+
+        } else if ( strstr(arg->stdin_command, "play_note") != NULL ) {
+            system("sudo ./play_note -q");
+
+        } else
+            printf("Cant understand what to launch!\n");
+
+    } else if ( strstr(arg->stdin_command, "stop") != NULL ) {
+
+        if( strstr(arg->stdin_command, "rangefinder_1") != NULL ) {
+            system("sudo pkill rangefinder_hcsr04_1");
+
+        } else if ( strstr(arg->stdin_command, "rangefinder_2") != NULL ) {
+            system("sudo pkill rangefinder_hcsr04_2");
+
+        } else if ( strstr(arg->stdin_command, "play_note") != NULL ) {
+            system("sudo pkill play_note -q");
+
+        } else
+            printf("Cant understand what to kill!\n");
+        
+    } else if ( strstr(arg->stdin_command, "set_min") != NULL ) {
+
+        char *_  = strtok(arg->stdin_command, " ");
+        char *num  = strtok(NULL, " ");
+
+        arg->range_min = (int)atoi(num);
+
+    } else if ( strstr(arg->stdin_command, "set_max") != NULL ) {
+
+        char *_  = strtok(arg->stdin_command, " ");
+        char *num  = strtok(NULL, " ");
+
+        arg->range_max = (int)atoi(num);
+
+    } else
+        printf("Cant understand!\n");
+
+    return SUCCESS;
+}
 
 int main(int argc, char *argv[])
 {
@@ -41,283 +101,7 @@ int main(int argc, char *argv[])
 		int mins = (int)( (cur_secs - 3600 * hours)  / 60);
 		int secs = (int)(cur_secs - 3600 * hours - 60 * mins);
 
-        if(calibrating == 1) {
 
-            strcpy(buff_but,"");
-            strcpy(buff_rf_1,"");
-            strcpy(buff_rf_2,"");
-
-            printf("Starting calibrating...\n\n");
-
-            // Калибровка мин расстояния (НОТЫ)
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            printf("Calibrate min range for notes\n");
-
-            system("sudo ./button_read 1b &"); //теперь будет отправлять только какую кнопку посмотреть
-
-            if((fd_fifo = open("button_data", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for button 1\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo, buff_but, sizeof(buff_but)) == -1) {
-                    printf("Can't read FIFO for button 1\n");
-                    close(fd_fifo);
-                    return -1;
-                }
-
-                if( strstr(buff_but, "Button 0") != NULL ) {
-                    printf("Reset everything...\n");
-                    sleep(1);
-                    system("clear");
-                    close(fd_fifo);
-                    continue;
-                }
-
-
-				close(fd_fifo);
-            }
-
-
-            system("sudo ./rangefinder_hcsr04_1 &");
-            if((fd_fifo_rf_1 = open("range_data_1", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for rangeData 1\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo_rf_1, buff_rf_1, sizeof(buff_rf_1)) == -1) {
-                    printf("Can't read FIFO for rangeData 1\n");
-                    return -1;
-                }
-				close(fd_fifo_rf_1);
-            }
-
-            float range_float = atof(buff_rf_1);
-		    int range_cur = (int)(range_float * 1000000);
-            range_min = range_cur;
-
-            printf("Min range now is: %d\n", range_min);
-            ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-            strcpy(buff_but,"");
-            strcpy(buff_rf_1,"");
-
-
-            // Калибровка макс расстояния(НОТЫ)
-            ////////////////////////////////////////////////////////////////////////////////////////////////////
-            printf("Calibrate max range for notes\n");
-
-            system("sudo ./button_read 1b &");
-
-            if((fd_fifo = open("button_data", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for button 1\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo, buff_but, sizeof(buff_but)) == -1) {
-                    printf("Can't read FIFO for button 1\n");
-                    close(fd_fifo);
-                    return -1;
-                }
-
-                if( strstr(buff_but, "Button 0") != NULL ) {
-                    printf("Killing hostages...\n");
-                    sleep(1);
-                    system("clear");
-                    close(fd_fifo);
-                    continue;
-                }
-				close(fd_fifo);
-            }
-
-
-            system("sudo ./rangefinder_hcsr04_1 &");
-            if((fd_fifo_rf_1 = open("range_data_1", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for rangeData 1\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo_rf_1, buff_rf_1, sizeof(buff_rf_1)) == -1) {
-                    printf("Can't read FIFO for rangeData 1\n");
-                    return -1;
-                }
-				close(fd_fifo_rf_1);
-            }
-
-            float range_float = atof(buff_rf_1);
-		    int range_cur = (int)(range_float * 1000000);
-            range_max = range_cur;
-
-            printf("Max range now is: %d\n", range_max);
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            strcpy(buff_but,"");
-            strcpy(buff_rf_1,"");
-
-            // Калибровка мин расстояния (ГРОМКОСТЬ)
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            printf("Calibrate min range for volume\n");
-
-            system("sudo ./button_read 1b &");
-
-            if((fd_fifo = open("button_data", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for button 1\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo, buff_but, sizeof(buff_but)) == -1) {
-                    printf("Can't read FIFO for button 1\n");
-                    close(fd_fifo);
-                    return -1;
-                }
-
-                if( strstr(buff_but, "Button 0") != NULL ) {
-                    printf("Murdering a women...\n");
-                    sleep(1);
-                    system("clear");
-                    close(fd_fifo);
-                    continue;
-                }
-
-
-				close(fd_fifo);
-            }
-
-
-            system("sudo ./rangefinder_hcsr04_2 &");
-            if((fd_fifo_rf_2 = open("range_data_2", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for rangeData 2\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo_rf_2, buff_rf_2, sizeof(buff_rf_2)) == -1) {
-                    printf("Can't read FIFO for rangeData 2\n");
-                    return -1;
-                }
-				close(fd_fifo_rf_2);
-            }
-
-            float range_float = atof(buff_rf_2);
-		    int range_cur = (int)(range_float * 1000000);
-            volume_min = range_cur;
-
-            printf("Min volume range now is: %d\n", volume_min);
-            ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            strcpy(buff_but,"");
-            strcpy(buff_rf_2,"");
-
-            // Калибровка макс расстояния (ГРОМКОСТЬ)
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            printf("Calibrate max range for volume\n");
-
-            system("sudo ./button_read 1b &");
-
-            if((fd_fifo = open("button_data", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for button 1\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo, buff_but, sizeof(buff_but)) == -1) {
-                    printf("Can't read FIFO for button 1\n");
-                    close(fd_fifo);
-                    return -1;
-                }
-
-                if( strstr(buff_but, "Button 0") != NULL ) {
-                    printf("Torture prisoners...\n");
-                    sleep(1);
-                    system("clear");
-                    close(fd_fifo);
-                    continue;
-                }
-
-
-				close(fd_fifo);
-            }
-
-
-            system("sudo ./rangefinder_hcsr04_2 &");
-            if((fd_fifo_rf_2 = open("range_data_2", O_RDONLY)) <= -1) {
-
-                printf("Can't open FIFO for rangeData 2\n");
-                return -1;
-
-            } else {
-                
-                if(read(fd_fifo_rf_2, buff_rf_2, sizeof(buff_rf_2)) == -1) {
-                    printf("Can't read FIFO for rangeData 2\n");
-                    return -1;
-                }
-				close(fd_fifo_rf_2);
-            }
-
-            float range_float = atof(buff_rf_2);
-		    int range_cur = (int)(range_float * 1000000);
-            volume_max = range_cur;
-
-            printf("Max volume range now is: %d\n", volume_max);
-            ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            if( (range_max - range_min) <= 0 ) {
-                printf("Range is bad. Recolibrating...\n");
-                sleep(1);
-                system("clear");
-                continue;
-
-            } else if( (volume_max - volume_min) <= 0 ) {
-                printf("Volume is bad. Recolibrating...\n");
-                sleep(1);
-                system("clear");
-                continue;
-            }
-
-            calibrating = 0;
-        }
-
-        strcpy(buff_but,"");
-        strcpy(buff_rf_1,"");
-        strcpy(buff_rf_2,"");
-
-        // Проверка на калибровку
-        /////////////////////////////////////////////////////////////////////////////////////////
-        system("sudo ./button_read 0b &");
-
-        if((fd_fifo = open("button_data", O_RDONLY)) <= -1) {
-            printf("Can't open FIFO for button 0\n");
-            return -1;
-        } else {   
-            if(read(fd_fifo, buff_but, sizeof(buff_but)) == -1) {
-                printf("Can't read FIFO for button 0\n");
-                close(fd_fifo);
-                return -1;
-            }
-
-            if( strstr(buff_but, "Button 0") != NULL ) {
-                printf("Calibrating procedure has been started...\n");
-                sleep(1);
-                system("clear");
-                close(fd_fifo);
-                continue;
-            }
-			close(fd_fifo);
-        }
-        //////////////////////////////////////////////////////////////////////////////////////////
 
 
         // Получение расст для ноты
