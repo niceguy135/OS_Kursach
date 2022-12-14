@@ -1,25 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2022 Sergey Balabaev (sergei.a.balabaev@gmail.com)                    *
- *                                                                             *
- * The MIT License (MIT):                                                      *
- * Permission is hereby granted, free of charge, to any person obtaining a     *
- * copy of this software and associated documentation files (the "Software"),  *
- * to deal in the Software without restriction, including without limitation   *
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,    *
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell   *
- * copies of the Software, and to permit persons to whom the Software is       *
- * furnished to do so, subject to the following conditions:                    *
- * The above copyright notice and this permission notice shall be included     *
- * in all copies or substantial portions of the Software.                      *
- *                                                                             *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  *
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,    *
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE *
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER      *
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,             *
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR       *
- * OTHER DEALINGS IN THE SOFTWARE.                                             *
- ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,8 +17,6 @@
 void help();
 
 int writeFifo(char * fifoName, char * str) {
-
-	//printf("In write fifo = %s\n", fifoName);
 
 	int fifo_d = open(fifoName, O_WRONLY);
 
@@ -65,8 +41,6 @@ int readFifo(char * fifo_name, char* read_str, int str_len) {
 	int read_num = read(fifo_d, read_str, str_len);
 	close(fifo_d);
 
-	//printf("65) In read fifo = %s, Read = %s\n", fifo_name, read_str);
-
 	return read_num;
 }
 
@@ -81,9 +55,8 @@ int getButtonState(char * fifo_name) {
 	}
 
 	char* last_new_line = strrchr(button_str, '\n');
-	//printf("button_str = %s", button_str);
-	//printf("button_str last = %d\n", last_new_line[-1] - '0');
-	return last_new_line[-1] - '0';
+
+	return last_new_line[-1] - '0'; // от "1" или "0" отнимается ASCII "0" и получается его int интерпритация
 }
 
 float getRange(char * fifo_name) {
@@ -208,8 +181,8 @@ char * cmd_stop = "stop";
 char * cmd_start = "start";
 char * cmd_set_min = "set_min";
 char * cmd_set_max = "set_max";
-char * rangefinder_prog_name = "rangefinder_hcsr04_IlorDash";
-char * playnote_prog_name = "play_note__IlorDash";
+char * rangefinder_prog_name = "rangefinder_hcsr04_DK";
+char * playnote_prog_name = "play_note_DK"; //хз, здесь было два ниж. подч. Зачем?
 char * all_prog_name = "all";
 
 char *rangefinder_prog_args[] = {"-q", "1000", "range_fifo"};
@@ -484,51 +457,39 @@ int main(int argc, char *argv[]) {
 
 				if (range_local >= note_params.max_range) {
 					sprintf(note_str, "A#");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - note_params.range_step)) {
 					sprintf(note_str, "A");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - (2 * note_params.range_step))) {
 					sprintf(note_str, "B");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - (3 * note_params.range_step))) {
 					sprintf(note_str, "C#");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - (4 * note_params.range_step))) {
 					sprintf(note_str, "C");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - (5 * note_params.range_step))) {
 					sprintf(note_str, "D#");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - (6 * note_params.range_step))) {
 					sprintf(note_str, "D");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if ((range_local >= (note_params.max_range - (7 * note_params.range_step)))) {
 					sprintf(note_str, "E");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else if (range_local >= (note_params.max_range - (8 * note_params.range_step))) {
 					sprintf(note_str, "F#");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else	if (range_local >= (note_params.max_range - (9 * note_params.range_step))) {
 					sprintf(note_str, "F");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else	if (range_local >= (note_params.max_range - (10 * note_params.range_step))) {
 					sprintf(note_str, "G#");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 
 				} else	if (range_local < (note_params.max_range - (10 * note_params.range_step))) {
 					sprintf(note_str, "G");
-					//write(note_fd, note_str, strlen(note_str) + 1);
 				}
 
 				pthread_mutex_unlock(&note_params.mutex_note_params);
