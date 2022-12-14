@@ -1,0 +1,8 @@
+Чтобы запустить это чудо:
+ Создать FIFO: stop_prog, range_fifo, note_fifo, button_data_22, button_data_23
+
+Запустить Makefile
+
+Запустить скрипты для кнопок
+
+Запустить только combiner и уже через него все остальное?
