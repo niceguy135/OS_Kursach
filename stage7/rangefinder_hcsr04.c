@@ -140,6 +140,27 @@ static int GPIORead(int pin) {
 	return (atoi(value_str));
 }
 
+static int driverWork(){
+	char value_str[3];
+	int fd;
+	char *path = "/sys/module/<имя_модуля>/parameters/echo_value"; // че бля за имя модуля
+
+	fd = open(path, O_RDONLY);
+	if (-1 == fd) {
+		fprintf(stderr, "Failed to open gpio value for reading!\n");
+		Exiting(-1);
+	}
+
+	if (-1 == read(fd, value_str, 3)) {
+		fprintf(stderr, "Failed to read value!\n");
+		Exiting(-1);
+	}
+
+	close(fd);
+
+	return (atoi(value_str));
+}
+
 static int GPIOWrite(int pin, int value) {
 	static const char s_values_str[] = "01";
 
@@ -263,11 +284,12 @@ int main(int argc, char *argv[]) {
 		GPIOWrite(TRIG, 1);
 		usleep(10);
 		GPIOWrite(TRIG, 0);
-		while (!GPIORead(ECHO)) {
+
+		while (!driverWork()) {
 		}
 		double start_time = clock();
 		int flag = 0;
-		while (GPIORead(ECHO)) {
+		while (driverWork()) {
 			if (clock() - start_time >
 			    TIMEOUT_SEC * CLOCKS_PER_SEC) {
 				flag = 1;
