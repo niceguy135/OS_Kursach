@@ -1,6 +1,7 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
+#include <linux/moduleparam.h>
 #include <linux/kdev_t.h>
 #include <linux/fs.h>
 #include <linux/cdev.h>
@@ -14,29 +15,25 @@
 uint8_t kernel_buffer;
 uint8_t button;
 #define mem_size     1024 
-#define GPIO_23_IN  (23) //button is connected to this GPIO
-uint8_t led_toggle = 0; 
+#define GPIO_11_IN  (11) //button is connected to this GPIO
  
 extern unsigned long volatile jiffies;
 unsigned long old_jiffie = 0;
  
 unsigned int GPIO_irqNumber; 
- 
+
+int echo_value = 0;
+module_param(echo_value, int, S_IRUSR);
+
+
 static irqreturn_t gpio_irq_handler(int irq,void *dev_id) 
 {
-  static unsigned long flags = 0;
-   unsigned long diff = jiffies - old_jiffie;
-   if (diff < 20)
-   {
-     return IRQ_HANDLED;
-   }
-  old_jiffie = jiffies;
  
   local_irq_save(flags);
-  led_toggle = (0x01 ^ led_toggle);                             
-  kernel_buffer = led_toggle;
+  echo_value = gpio_get_value(GPIO_11_IN);                            
+  kernel_buffer = gpio_get_value(GPIO_11_IN); 
   local_irq_restore(flags);
-  pr_info("Interrupt Occurred : GPIO_23_IN : %d ",gpio_get_value(GPIO_23_IN));
+  pr_info("Interrupt Occurred : GPIO_11_IN : %d ", gpio_get_value(GPIO_11_IN));
   return IRQ_HANDLED;
 }
  
@@ -80,9 +77,8 @@ static ssize_t etx_read(struct file *filp,
                             char __user *buf, size_t len, loff_t *off)
 {
   uint8_t gpio_state = 0;
-  gpio_state = gpio_get_value(GPIO_23_IN);
-  pr_info("Read function : GPIO_23 = %d \n", gpio_state);
- 
+  gpio_state = gpio_get_value(GPIO_11_IN);
+  pr_info("Read function : GPIO_11 = %d \n", gpio_state);
   return 0;
  
 }
@@ -96,7 +92,7 @@ static ssize_t etx_write(struct file *filp,
  
 static int __init etx_driver_init(void)
 {
-  if((alloc_chrdev_region(&dev, 0, 1, "gpio_Dev")) <0){
+  if((alloc_chrdev_region(&dev, 0, 1, "echo_Dev")) <0){
     pr_err("Cannot allocate major number\n");
     unregister_chrdev_region(dev,1);
     return -1;
@@ -117,36 +113,37 @@ static int __init etx_driver_init(void)
     return -1;
   }
  
-  if((device_create(dev_class,NULL,dev,NULL,"gpio_device")) == NULL){
+  if((device_create(dev_class,NULL,dev,NULL,"echo_pin")) == NULL){
     pr_err( "Cannot create the Device \n");
     device_destroy(dev_class,dev);
     return -1;
   }
  
-  if(gpio_is_valid(GPIO_23_IN) == false){
-    pr_err("GPIO %d is not valid\n", GPIO_23_IN);
-    gpio_free(GPIO_23_IN);
+  if(gpio_is_valid(GPIO_11_IN) == false){
+    pr_err("GPIO %d is not valid\n", GPIO_11_IN);
+    gpio_free(GPIO_11_IN);
     return -1;
   }
  
-  if(gpio_request(GPIO_23_IN,"GPIO_23_IN") < 0){
-    pr_err("ERROR: GPIO %d request\n", GPIO_23_IN);
-    gpio_free(GPIO_23_IN);
+  if(gpio_request(GPIO_11_IN,"GPIO_11_IN") < 0){
+    pr_err("ERROR: GPIO %d request\n", GPIO_11_IN);
+    gpio_free(GPIO_11_IN);
     return -1;
   }
  
-  gpio_direction_input(GPIO_23_IN);
+  gpio_direction_input(GPIO_11_IN);
  
-  GPIO_irqNumber = gpio_to_irq(GPIO_23_IN);  //Get the IRQ number for our GPIO
+  GPIO_irqNumber = gpio_to_irq(GPIO_11_IN);  //Get the IRQ number for our GPIO
   pr_info("GPIO_irqNumber = %d\n", GPIO_irqNumber);
  
   if (request_irq(GPIO_irqNumber,             //IRQ number
                   (void *)gpio_irq_handler,   //IRQ handler
-                  IRQF_TRIGGER_RISING,        //Handler will be called in raising edge
-                  " gpio_device",               //used to identify the device name using this IRQ
+                  IRQF_TRIGGER_RISING |
+                  IRQF_TRIGGER_FALLING,        //Handler will be called in raising edge and in falling edge
+                  "echo_pin",               //used to identify the device name using this IRQ
                   NULL)) {                    //device id for shared IRQ
-    pr_err("gpio_device: cannot register IRQ ");
-    gpio_free(GPIO_23_IN);
+    pr_err("echo_pin: cannot register IRQ ");
+    gpio_free(GPIO_11_IN);
     return -1;
   }
  
@@ -157,7 +154,7 @@ static int __init etx_driver_init(void)
 static void __exit etx_driver_exit(void)
 {
   free_irq(GPIO_irqNumber,NULL);
-  gpio_free(GPIO_23_IN);
+  gpio_free(GPIO_11_IN);
   device_destroy(dev_class,dev);
   class_destroy(dev_class);
   cdev_del(&etx_cdev);
