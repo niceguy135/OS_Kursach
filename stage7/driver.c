@@ -10,15 +10,11 @@
 #include <linux/uaccess.h>  
 #include <linux/gpio.h>    
 #include <linux/interrupt.h>
-#include <linux/jiffies.h>
  
 uint8_t kernel_buffer;
 uint8_t button;
 #define mem_size     1024 
 #define GPIO_11_IN  (11) //button is connected to this GPIO
- 
-extern unsigned long volatile jiffies;
-unsigned long old_jiffie = 0;
  
 unsigned int GPIO_irqNumber; 
 
@@ -28,7 +24,7 @@ module_param(echo_value, int, S_IRUSR);
 
 static irqreturn_t gpio_irq_handler(int irq,void *dev_id) 
 {
- 
+  static unsigned long flags = 0;
   local_irq_save(flags);
   echo_value = gpio_get_value(GPIO_11_IN);                            
   kernel_buffer = gpio_get_value(GPIO_11_IN); 
@@ -165,7 +161,7 @@ static void __exit etx_driver_exit(void)
 module_init(etx_driver_init);
 module_exit(etx_driver_exit);
  
-MODULE_LICENSE("ULTRA SEX");
+MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Danov K");
 MODULE_DESCRIPTION("GPIO button driver for hard sex");
 MODULE_VERSION("1.0");
